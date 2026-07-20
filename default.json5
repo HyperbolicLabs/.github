@@ -12,7 +12,10 @@
   // creation was duplicated in every repo. Defining it once here fixes
   // that class of problem.
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
-  extends: ["config:recommended"],
+  // config:best-practices = config:recommended plus the hardening presets
+  // (pin GitHub Action + Docker digests, config-migration PRs, unpublish-safe
+  // npm, etc.). It's Renovate's current recommended baseline for teams.
+  extends: ["config:best-practices"],
 
   // Weekly on Mondays, all-day cron window on purpose. Mend's hosted
   // scanner runs each repo only a few times a day, so a narrow
@@ -39,6 +42,19 @@
       description: "Bundle GitHub Actions bumps into one PR. Workflows pin actions to SHAs, so each PR carries the new tag-comment automatically. Repo-local packageRules append to this.",
       matchManagers: ["github-actions"],
       groupName: "github-actions",
+    },
+    {
+      // Automerge is deliberately scoped to GitHub Actions only. Action
+      // bumps are SHA-pinned and only affect CI workflows (never prod), and
+      // Renovate waits for required status checks before merging — so a bad
+      // bump is caught by CI, not shipped. We intentionally do NOT automerge
+      // terraform / argocd / gomod: those are reviewed (and in forge-infra a
+      // terraform bump auto-applies to prod on merge). Majors are excluded so
+      // a breaking action version still gets eyes.
+      description: "Automerge low-risk GitHub Actions bumps (digest re-pins + minor/patch); majors stay for review.",
+      matchManagers: ["github-actions"],
+      matchUpdateTypes: ["digest", "pin", "pinDigest", "minor", "patch"],
+      automerge: true,
     },
   ],
 }
