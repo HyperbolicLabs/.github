@@ -1,0 +1,26 @@
+name: renovate-config-validate
+
+# Validate the shared Renovate preset before it lands. A bad edit here
+# breaks dependency automation across every repo that extends it, silently,
+# until Renovate's next run — so gate it in CI. --no-global is required for a
+# shared preset / non-standard filename (else it's parsed as global config).
+on:
+  pull_request:
+    paths:
+      - default.json5
+      - .github/workflows/renovate-config-validate.yml
+  push:
+    branches: [main]
+    paths:
+      - default.json5
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v4
+      - name: Validate shared Renovate preset
+        run: npx --yes --package renovate -- renovate-config-validator --strict --no-global default.json5
