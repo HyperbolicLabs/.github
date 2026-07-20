@@ -4,15 +4,13 @@ name: renovate-config-validate
 # breaks dependency automation across every repo that extends it, silently,
 # until Renovate's next run — so gate it in CI. --no-global is required for a
 # shared preset / non-standard filename (else it's parsed as global config).
+#
+# Runs on EVERY PR (no path filter) so it always reports a status and can be
+# made a required check without blocking unrelated PRs.
 on:
   pull_request:
-    paths:
-      - default.json5
-      - .github/workflows/renovate-config-validate.yml
   push:
     branches: [main]
-    paths:
-      - default.json5
 
 permissions:
   contents: read
