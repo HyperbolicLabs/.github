@@ -1,0 +1,44 @@
+{
+  // Shared Renovate preset for HyperbolicLabs repos.
+  //
+  // Use it from a repo's own renovate.json5 with:
+  //   extends: ["github>HyperbolicLabs/.github"]
+  // and keep ONLY that repo's manager-specific rules locally (Go rules
+  // in forge, argocd/terraform/Kargo rules in forge-infra, etc.).
+  //
+  // Why this exists: common policy (schedule, PR caps, commit prefix,
+  // the github-actions grouping) used to be copy-pasted into each repo's
+  // renovate.json5 and drifted. The narrow-schedule bug that starved PR
+  // creation was duplicated in every repo. Defining it once here fixes
+  // that class of problem.
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["config:recommended"],
+
+  // Weekly on Mondays, all-day cron window on purpose. Mend's hosted
+  // scanner runs each repo only a few times a day, so a narrow
+  // "before 6am on monday" slot was too small to reliably catch a run —
+  // updates sat in "Awaiting Schedule" and no PR ever opened. All-day
+  // Monday keeps the weekly cadence but is wide enough for a scan to
+  // land in-window.
+  schedule: ["* * * * 1"],
+  timezone: "America/Los_Angeles",
+
+  labels: ["dependencies"],
+
+  // Default Renovate commit prefix would fail our conventional-title CI
+  // gate. Use `chore:` (also what Dependabot used).
+  commitMessagePrefix: "chore:",
+
+  // Soft caps so a Monday batch doesn't dump dozens of PRs into review
+  // at once.
+  prConcurrentLimit: 10,
+  prHourlyLimit: 2,
+
+  packageRules: [
+    {
+      description: "Bundle GitHub Actions bumps into one PR. Workflows pin actions to SHAs, so each PR carries the new tag-comment automatically. Repo-local packageRules append to this.",
+      matchManagers: ["github-actions"],
+      groupName: "github-actions",
+    },
+  ],
+}
