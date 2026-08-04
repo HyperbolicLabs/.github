@@ -37,6 +37,18 @@
   prConcurrentLimit: 10,
   prHourlyLimit: 2,
 
+  // Open CVE-flagged bumps immediately, off-schedule. Renovate reads
+  // GitHub's Dependabot alert feed for each repo and, on a hit, opens a
+  // PR the moment the alert appears — bypassing the Monday cron. Normal
+  // dep bumps still batch on the weekly cadence; security-flagged ones
+  // don't wait up to seven days. Depends on Dependabot Security Alerts
+  // being on at the org/repo level (Settings → Code security), which
+  // was already the standing policy before Renovate replaced Dependabot.
+  vulnerabilityAlerts: {
+    enabled: true,
+    labels: ["security"],
+  },
+
   packageRules: [
     {
       description: "Bundle GitHub Actions bumps into one PR. Workflows pin actions to SHAs, so each PR carries the new tag-comment automatically. Repo-local packageRules append to this.",
